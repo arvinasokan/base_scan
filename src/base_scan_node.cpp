@@ -86,9 +86,11 @@ LaserScanner() {
 // This function is unnecessary ,
 // as the fake ranges can be generated and filled in the final loop ,
 // I am keeping this just to keep it separate.
-bool generate_laser_scans() {
+void generate_laser_scans() {
   srand(time(NULL));
-
+  // Code Frequency in hz
+  ros::Rate r(50);
+  while (nh.ok()) {
   // Just to show some variation in values
   for (unsigned int i = 0; i < num_readings_/3 ; ++i) {
       ranges.push_back(5);
@@ -100,13 +102,11 @@ bool generate_laser_scans() {
       ranges.push_back(5);
     }
   scan_time_ = ros::Time::now();
-  return true;
+  publish_scan();
+  r.sleep();
 }
-void publish_scan() {
-  // Code Frequency in hz
-  ros::Rate r(50);
-  while (nh.ok()) {
-    if (generate_laser_scans()) {
+}
+bool publish_scan() {
     // Packing all the sensor data
     sensor_msgs::LaserScan scan;
     scan.header.stamp = scan_time_;
@@ -128,16 +128,14 @@ void publish_scan() {
     ranges.clear();
     // Publishing the scan data
     laser_scan_pub.publish(scan);
+    return true;
     }
-    r.sleep();
-}
-}
 };
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "base_scan");
   LaserScanner ls;
-  ls.publish_scan();
+  ls.generate_laser_scans();
   ros::spin();
   return 0;
 }
